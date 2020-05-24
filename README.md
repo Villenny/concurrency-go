@@ -14,9 +14,9 @@ go get -u github.com/Villenny/concurrency-go
 
 Using ParallelForLimit:
 ```
-	results := make([]float64, iMax)
+	results := make([]float64, len(input))
 
-	ParallelForLimit(width, iMax, func(n int) {
+	ParallelForLimit(runtime.NumCPU(), len(input), func(n int) {
 		in := input[n]
 		results[n] = MyWorkFn(in)
 	})
