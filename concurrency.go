@@ -1,6 +1,7 @@
 package concurrency
 
 import (
+	"runtime"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -174,6 +175,12 @@ func ParallelForLimit(workerCount int, count int, fn func(i int)) {
 					break
 				}
 			}
+
+			// yield before attempting to do anything with workstealing
+			// arguably should probably sleep or something to introduce an even bigger delay
+			// before switching to work stealing, its realy only needed for edge cases
+			// and the rest of the time it really slows things down by introducing contention
+			runtime.Gosched()
 
 			// after we're done our batch, signal all workers to switch to work stealing mode
 			if atomic.LoadInt64(workStealing) == 0 {

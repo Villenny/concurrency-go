@@ -87,6 +87,51 @@ func TestAtomicInt64(t *testing.T) {
 	})
 }
 
+func BenchmarkFor_InlineFor_SQRT(b *testing.B) {
+	iMax := b.N
+	input := make([]int, iMax)
+	for i := 0; i < iMax; i++ {
+		input[i] = i * i
+	}
+	results := make([]float64, iMax)
+
+	b.ResetTimer()
+	for n := 0; n < iMax; n++ {
+		in := input[n]
+		results[n] = math.Sqrt(float64(in))
+	}
+}
+
+func BenchmarkFor_SerialFor_SQRT(b *testing.B) {
+	iMax := b.N
+	input := make([]int, iMax)
+	for i := 0; i < iMax; i++ {
+		input[i] = i * i
+	}
+	results := make([]float64, iMax)
+
+	b.ResetTimer()
+	SerialFor(iMax, func(n int) {
+		in := input[n]
+		results[n] = math.Sqrt(float64(in))
+	})
+}
+
+func BenchmarkFor_InlineFor_SQRT2(b *testing.B) {
+	iMax := b.N
+	input := make([]int, iMax)
+	for i := 0; i < iMax; i++ {
+		input[i] = i * i
+	}
+	results := make([]float64, iMax)
+
+	b.ResetTimer()
+	for n := 0; n < iMax; n++ {
+		in := input[n]
+		results[n] = math.Sqrt(float64(in))
+	}
+}
+
 func BenchmarkFor_ParallelForLimit_SQRT_1(b *testing.B)  { benchmarkParallelForLimit_SQRT(b, 1) }
 func BenchmarkFor_ParallelForLimit_SQRT_2(b *testing.B)  { benchmarkParallelForLimit_SQRT(b, 2) }
 func BenchmarkFor_ParallelForLimit_SQRT_4(b *testing.B)  { benchmarkParallelForLimit_SQRT(b, 4) }
@@ -122,30 +167,6 @@ func BenchmarkFor_ParallelFor_SQRT(b *testing.B) {
 	b.ResetTimer()
 	// naive one worker per job, terrible performance
 	ParallelFor(iMax, func(n int) {
-		in := input[n]
-		results[n] = math.Sqrt(float64(in))
-	})
-
-}
-
-/*
-goos: windows
-goarch: amd64
-pkg: bitbucket.org/kidozteam/bidder-server/pkg/platform/concurrency
-BenchmarkSerialFor_SQRT
-BenchmarkSerialFor_SQRT-8   	228372157	         5.31 ns/op	       0 B/op	       0 allocs/op
-PASS
-*/
-func BenchmarkFor_SerialFor_SQRT(b *testing.B) {
-	iMax := b.N
-	input := make([]int, iMax)
-	for i := 0; i < iMax; i++ {
-		input[i] = i * i
-	}
-	results := make([]float64, iMax)
-
-	b.ResetTimer()
-	SerialFor(iMax, func(n int) {
 		in := input[n]
 		results[n] = math.Sqrt(float64(in))
 	})
@@ -521,33 +542,36 @@ func Benchmark_Inc500x2_Int64_noFalseSharing(b *testing.B) {
 }
 
 /*
+Running tool: C:\Go\bin\go.exe test -benchmem -run=^$ github.com/villenny/concurrency-go -bench .
+
 goos: windows
 goarch: amd64
 pkg: github.com/villenny/concurrency-go
-BenchmarkFor_ParallelForLimit_SQRT_1-8          	227508680	         5.27 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_ParallelForLimit_SQRT_2-8          	529180558	         5.68 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_ParallelForLimit_SQRT_4-8          	543552358	         2.39 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_ParallelForLimit_SQRT_8-8          	678688118	         8.51 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_ParallelForLimit_SQRT_16-8         	     100	  12596907 ns/op	     148 B/op	       0 allocs/op
-BenchmarkFor_ParallelFor_SQRT-8                 	 4943403	       238 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_SerialFor_SQRT-8                   	340297232	         3.40 ns/op	       0 B/op	       0 allocs/op
-BenchmarkFor_SerialFor_SHA256-8                 	 1720980	       698 ns/op	      32 B/op	       1 allocs/op
-BenchmarkFor_ParallelForLimit_SHA256-8          	 5946825	       203 ns/op	      32 B/op	       1 allocs/op
-BenchmarkInt64_Add-8                            	188283139	         6.59 ns/op	       0 B/op	       0 allocs/op
-BenchmarkInt64_Get-8                            	488312643	         2.69 ns/op	       8 B/op	       0 allocs/op
-BenchmarkSafeInt64_Add-8                        	 7602818	       158 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSafeInt64_Get-8                        	30885693	        41.8 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAtomicInt64_Add-8                      	66738595	        17.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkAtomicInt64_Get-8                      	1000000000	         0.775 ns/op	       0 B/op	       0 allocs/op
-Benchmark_Inc500x2_SafeInt64-8                  	   12219	    112004 ns/op	     174 B/op	       1 allocs/op
-Benchmark_Get500x2_Int64-8                      	 3112036	       394 ns/op	      11 B/op	       0 allocs/op
-Benchmark_Get500x2_SafeInt64-8                  	   59174	     22655 ns/op	       0 B/op	       0 allocs/op
-Benchmark_Inc500x2_AtomicInt64-8                	  139681	      8611 ns/op	       0 B/op	       0 allocs/op
-Benchmark_Get500x2_AtomicInt64-8                	 1570255	       762 ns/op	      57 B/op	       0 allocs/op
-Benchmark_Inc500x2_RawAtomic_falseSharing-8     	   55102	     21302 ns/op	       0 B/op	       0 allocs/op
-Benchmark_Inc500x2_RawAtomic_noFalseSharing-8   	  134972	      8852 ns/op	       0 B/op	       0 allocs/op
-Benchmark_Inc500x2_Int64_noFalseSharing-8       	  273004	      4581 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_InlineFor_SQRT-8                   	233251791	         5.27 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_SerialFor_SQRT-8                   	316951600	         3.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_InlineFor_SQRT2-8                  	355400126	         3.52 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelForLimit_SQRT_1-8          	348185676	         3.54 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelForLimit_SQRT_2-8          	490309041	         2.56 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelForLimit_SQRT_4-8          	682529796	         2.23 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelForLimit_SQRT_8-8          	616999903	         1.73 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelForLimit_SQRT_16-8         	363799666	         5.58 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_ParallelFor_SQRT-8                 	 5315326	       231 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFor_SerialFor_SHA256-8                 	 1701480	       707 ns/op	      32 B/op	       1 allocs/op
+BenchmarkFor_ParallelForLimit_SHA256-8          	 6006324	       217 ns/op	      32 B/op	       1 allocs/op
+BenchmarkInt64_Add-8                            	188578580	         6.22 ns/op	       0 B/op	       0 allocs/op
+BenchmarkInt64_Get-8                            	416442266	         2.50 ns/op	       8 B/op	       0 allocs/op
+BenchmarkSafeInt64_Add-8                        	 7651304	       159 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSafeInt64_Get-8                        	27936081	        36.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAtomicInt64_Add-8                      	70664302	        17.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAtomicInt64_Get-8                      	1000000000	         0.979 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Inc500x2_SafeInt64-8                  	   10000	    117378 ns/op	     497 B/op	       1 allocs/op
+Benchmark_Get500x2_Int64-8                      	 2951464	       405 ns/op	       2 B/op	       0 allocs/op
+Benchmark_Get500x2_SafeInt64-8                  	   58312	     29038 ns/op	     171 B/op	       0 allocs/op
+Benchmark_Inc500x2_AtomicInt64-8                	  136508	      8672 ns/op	     195 B/op	       0 allocs/op
+Benchmark_Get500x2_AtomicInt64-8                	 1530249	       777 ns/op	      48 B/op	       0 allocs/op
+Benchmark_Inc500x2_RawAtomic_falseSharing-8     	   57201	     21201 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Inc500x2_RawAtomic_noFalseSharing-8   	  139678	      8732 ns/op	       0 B/op	       0 allocs/op
+Benchmark_Inc500x2_Int64_noFalseSharing-8       	  250261	      4634 ns/op	       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/villenny/concurrency-go	80.581s
-Success: Benchmarks passed.
+ok  	github.com/villenny/concurrency-go	60.983s
 */
