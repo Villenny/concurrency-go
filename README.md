@@ -14,8 +14,9 @@ go get -u github.com/Villenny/concurrency-go
 `Pool`
 
 Using ParallelForLimit:
+- Quickly use all the cores to process an array of work.
 ```
-	import "bitbucket.org/villenny/concurrency-go"
+	import "github.com/villenny/concurrency-go"
 
 	results := make([]MyStruct, len(input))
 
@@ -27,8 +28,10 @@ Using ParallelForLimit:
 ```
 
 Using AtomicInt64:
+- Supports json marshal/unmarshal implicitly, just like regular int64's
+- Automatically eliminates false sharing
 ```
-	import "bitbucket.org/villenny/concurrency-go"
+	import "github.com/villenny/concurrency-go"
 
 	allocCount := NewAtomicInt64()
 	allocCount.Add(1)
@@ -38,9 +41,10 @@ Using AtomicInt64:
 ```
 
 Using the Pool:
+- Simplifies use by handling reset on put implicitly
 ```
 import (
-	"bitbucket.org/villenny/concurrency-go"
+	"github.com/villenny/concurrency-go"
 	"github.com/cespare/xxhash/v2"
 )
 
