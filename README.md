@@ -9,12 +9,15 @@ go get -u github.com/Villenny/concurrency-go
 ```
 
 ## Notable members:
-`ParallelForLimit()`
-`MakeAtomicInt64()`
+`ParallelForLimit()`, 
+`AtomicInt64`, 
+`Pool`
 
 Using ParallelForLimit:
 ```
-	results := make([]float64, len(input))
+	import "bitbucket.org/villenny/concurrency-go"
+
+	results := make([]MyStruct, len(input))
 
 	ParallelForLimit(runtime.NumCPU(), len(input), func(n int) {
 		in := input[n]
@@ -23,12 +26,45 @@ Using ParallelForLimit:
 
 ```
 
+Using AtomicInt64:
+```
+	import "bitbucket.org/villenny/concurrency-go"
+
+	allocCount := NewAtomicInt64()
+	allocCount.Add(1)
+	bytes, _ := json.Marshal(&allocCount)
+	_ = json.Unmarshal(bytes, &allocCount)
+	itsOne := allocCount.Get()
+```
+
+Using the Pool:
+```
+import (
+	"bitbucket.org/villenny/concurrency-go"
+	"github.com/cespare/xxhash/v2"
+)
+
+var pool = concurrency.NewPool(&concurrency.PoolInfo{
+	New:   func() interface{} { return xxhash.New() },
+	Reset: func(t interface{}) { t.(*xxhash.Digest).Reset() },
+})
+
+func HashString(s string) uint64 {
+	digest := pool.Get().(*xxhash.Digest)
+	_, _ = digest.WriteString(s) // always returns len(s), nil
+	hash := digest.Sum64()
+	pool.Put(digest)
+	return hash
+}
+```
 
 ## Benchmark
 
-Assuming you never call go fn() inside your work function, ParallelForLimit() is pretty tough to beat.
+Assuming you never call go fn() inside your work function, ParallelForLimit() is pretty tough to beat assuming you're using it for batch processing which is its intended use case.
 
 Unfortunately without the ability to do something along the lines of go thiscore fn(), theres no way to do this optimally if you have asynchronous calls in your work function.
+
+And while its easy to use, you absolutely can beat it, by feeding your input into one disruptor per long lived goroutine so each has totally independent in order circular array buffers with zero contention.
 
 ```
 Running tool: C:\Go\bin\go.exe test -benchmem -run=^$ github.com/villenny/concurrency-go -bench .
