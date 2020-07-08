@@ -87,6 +87,43 @@ func TestAtomicInt64(t *testing.T) {
 	})
 }
 
+func TestPool(t *testing.T) {
+	t.Run("can get and put", func(t *testing.T) {
+		newCount := 0
+		resetCount := 0
+		var pool = NewPool(&PoolInfo{
+			New: func() interface{} {
+				newCount += 1
+				return new(int)
+			},
+			Reset: func(t interface{}) {
+				resetCount += 1
+				p := t.(*int)
+				*p = 0
+			},
+		})
+
+		p := pool.Get().(*int)
+		assert.Equal(t, 0, *p)
+		assert.Equal(t, 1, newCount)
+		assert.Equal(t, 0, resetCount)
+		*p = 23
+		pool.Put(p)
+
+		p = pool.Get().(*int)
+		assert.Equal(t, 0, *p)
+		assert.Equal(t, 1, newCount)
+		assert.Equal(t, 1, resetCount)
+		pool.Put(p)
+
+		assert.Equal(t, int64(1), pool.AllocationCount.Get())
+	})
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  B E N C H M A R K S
+
 func BenchmarkFor_InlineFor_SQRT(b *testing.B) {
 	iMax := b.N
 	input := make([]int, iMax)
