@@ -3,6 +3,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/stargazers)
 [![GitHub license](https://img.shields.io/github/license/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/blob/master/LICENSE)
 ![Go](https://github.com/Villenny/concurrency-go/workflows/Go/badge.svg?branch=master)
+![Codecov branch](https://img.shields.io/codecov/c/github/villenny/concurrency-go/master)
 
 # concurrency-go
 Helper library for effective concurrency in golang
