@@ -1,3 +1,8 @@
+[![GitHub issues](https://img.shields.io/github/issues/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/issues)
+[![GitHub forks](https://img.shields.io/github/forks/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/network)
+[![GitHub stars](https://img.shields.io/github/stars/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/stargazers)
+[![GitHub license](https://img.shields.io/github/license/Villenny/concurrency-go)](https://github.com/Villenny/concurrency-go/blob/master/LICENSE)
+
 # concurrency-go
 Helper library for effective concurrency in golang
 
