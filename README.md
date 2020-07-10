@@ -71,11 +71,13 @@ func HashString(s string) uint64 {
 
 ## Benchmark
 
-Assuming you never call go fn() inside your work function, ParallelForLimit() is pretty tough to beat assuming you're using it for batch processing which is its intended use case.
+Assuming you never call go fn() inside your work function, ParallelForLimit() is pretty tough to beat assuming you're using it for batch processing which is its intended use case. In the SHA benchmark, its pretty close to 4X the throughput of the serial version on my 4 core + hyperthreading processor.
 
 Unfortunately without the ability to do something along the lines of go thiscore fn(), theres no way to do this optimally if you have asynchronous calls in your work function.
 
-And while its easy to use, you absolutely can beat it, by feeding your input into one disruptor per long lived goroutine so each has totally independent in order circular array buffers with zero contention.
+And while its easy to use, you absolutely can beat it, like by a lot, by feeding your input into one disruptor per long lived goroutine so each has totally independent in order circular array buffers with zero contention. See https://github.com/serialx/go-disruptor
+
+
 
 ```
 Running tool: C:\Go\bin\go.exe test -benchmem -run=^$ github.com/villenny/concurrency-go -bench .
